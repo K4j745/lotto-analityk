@@ -2,8 +2,8 @@ name: Update Lotto Data
 
 on:
   schedule:
-    # Wt/Czw/Sob o 21:30 UTC (losowanie ~21:40 PL czasu, dane dostępne ok. 22:00)
-    - cron: '30 21 * * 2,4,6'
+    # Wt/Czw/Sob o 22:30 UTC = 00:30 CEST (losowanie ~21:40 PL, margines na dane)
+    - cron: '30 22 * * 2,4,6'
   workflow_dispatch:
 
 permissions:
