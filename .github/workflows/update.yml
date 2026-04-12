@@ -2,8 +2,8 @@ name: Update Lotto Data
 
 on:
   schedule:
-    # Wt/Czw/Sob o 22:30 UTC (losowanie ~21:40 PL czasu)
-    - cron: '30 20 * * 2,4,6'
+    # Wt/Czw/Sob o 21:30 UTC (losowanie ~21:40 PL czasu, dane dostępne ok. 22:00)
+    - cron: '30 21 * * 2,4,6'
   workflow_dispatch:
 
 permissions:
@@ -17,10 +17,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -28,11 +28,14 @@ jobs:
       - name: Build HTML
         run: python build_lotto.py
 
-      - name: Commit i push index.html
+      - name: Commit and push if changed
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --staged --quiet && echo "Brak zmian, pomijam commit." || \
-          git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M UTC')"
-          git push
+          if git diff --staged --quiet; then
+            echo "Brak zmian w index.html, pomijam commit."
+          else
+            git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
