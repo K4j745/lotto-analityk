@@ -5,6 +5,9 @@ on:
     - cron: '30 21 * * 2,4,6'   # Wt/Czw/Sob 21:30 UTC = 22:30 CEST (po losowaniu)
   workflow_dispatch:              # reczne uruchomienie z GitHub UI
 
+permissions:
+  contents: write                 # WYMAGANE do git push z Actions
+
 jobs:
   build:
     runs-on: ubuntu-latest
