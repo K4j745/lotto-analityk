@@ -304,7 +304,7 @@ function mkBoot(){const ctx=document.getElementById('cB');
     plugins:{legend:{display:false},tooltip:{callbacks:{title:c=>'Liczba '+c[0].label,
       label:function(c){const ci=BOOT[c.label];return ci?' Sr: '+ci[1]+'% | CI 95%: ['+ci[0]+'%, '+ci[2]+'%]':'';}}},
     scales:{x:{stacked:true,grid:{color:gc()},ticks:{color:gt(),font:{size:10},maxTicksLimit:25}},
-            y:{stacked:false,grid:{color:gc()},ticks:{color:gt(),font:{size:10},callback:function(v){return v+'%';}}}}})
+            y:{stacked:false,grid:{color:gc()},ticks:{color:gt(),font:{size:10},callback:function(v){return v+'%';}}}}}
 const DLBL={1950:'Lata 50.',1960:'Lata 60.',1970:'Lata 70.',1980:'Lata 80.',1990:'Lata 90.',2000:'Lata 2000.',2010:'Lata 2010.',2020:'Lata 2020.'};
 function mkDecBtns(){const c=document.getElementById('dbtns');if(c.children.length)return;
   Object.keys(DEC).forEach(function(dec){const b=document.createElement('button');b.className='rb'+(dec==curD?' active':'');
