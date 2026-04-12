@@ -1,0 +1,34 @@
+name: Update Lotto Data
+
+on:
+  schedule:
+    - cron: '30 21 * * 2,4,6'   # Wt/Czw/Sob 21:30 UTC = 22:30 CEST (po losowaniu)
+  workflow_dispatch:              # reczne uruchomienie z GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install requests scikit-learn numpy
+
+      - name: Build HTML
+        run: python build_lotto.py
+
+      - name: Commit & push (tylko jesli sa zmiany)
+        run: |
+          git config user.email "lotto-bot@github.com"
+          git config user.name "LottoBot"
+          git add lotto-analityk.html
+          git diff --staged --quiet \
+            && echo "Brak nowych danych, pomijam commit." \
+            || (git commit -m "Aktualizacja danych Lotto $(date +%Y-%m-%d)" && git push)
