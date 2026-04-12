@@ -2,7 +2,7 @@
 
 Interaktywna aplikacja analityczna dla polskiego Lotto (6/49).
 
-**Live demo:** https://TWOJ-NICK.github.io/lotto-analityk/lotto-analityk.html
+**Live demo:** https://K4j745.github.io/lotto-analityk/lotto-analityk.html
 
 ## Uruchomienie lokalne
 ```bash
@@ -13,7 +13,7 @@ python build_lotto.py
 
 ## Auto-aktualizacja
 GitHub Actions przebudowuje strone po kazdym losowaniu (Wt/Czw/Sob).
-Wymagane: Settings -> Actions -> General -> Read and write permissions.
+Przypomnienie: Settings -> Actions -> General -> Read and write permissions.
 
 ## Disclaimer
 Losowania Lotto sa zdarzeniami niezaleznymi (P = 1/13983816). Projekt edukacyjny.
