@@ -28,7 +28,7 @@ jobs:
         run: |
           git config user.email "lotto-bot@github.com"
           git config user.name "LottoBot"
-          git add lotto-analityk.html
+          git add index.html
           git diff --staged --quiet \
             && echo "Brak nowych danych, pomijam commit." \
             || (git commit -m "Aktualizacja danych Lotto $(date +%Y-%m-%d)" && git push)
