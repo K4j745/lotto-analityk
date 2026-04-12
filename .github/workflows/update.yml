@@ -2,36 +2,37 @@ name: Update Lotto Data
 
 on:
   schedule:
-    - cron: '30 21 * * 2,4,6'   # Wt/Czw/Sob 21:30 UTC = 22:30 CEST (po losowaniu)
-  workflow_dispatch:              # reczne uruchomienie z GitHub UI
+    # Wt/Czw/Sob o 22:30 UTC (losowanie ~21:40 PL czasu)
+    - cron: '30 20 * * 2,4,6'
+  workflow_dispatch:
 
 permissions:
-  contents: write                 # WYMAGANE do git push z Actions
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.12
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-          cache: 'pip'
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests scikit-learn numpy
+        run: pip install -r requirements.txt
 
       - name: Build HTML
         run: python build_lotto.py
 
-      - name: Commit & push (tylko jesli sa zmiany)
+      - name: Commit i push index.html
         run: |
-          git config user.email "lotto-bot@github.com"
-          git config user.name "LottoBot"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --staged --quiet \
-            && echo "Brak nowych danych, pomijam commit." \
-            || (git commit -m "Aktualizacja danych Lotto $(date +%Y-%m-%d)" && git push)
+          git diff --staged --quiet && echo "Brak zmian, pomijam commit." || \
+          git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M UTC')"
+          git push
