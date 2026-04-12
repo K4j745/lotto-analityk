@@ -115,6 +115,6 @@ result = result.replace('{{RF6STR}}', str(rf_top6))
 result = result.replace('{{LAST_DATE}}', draws[-1]['date'])
 result = result.replace('{{DRAWS_ROWS}}', draws_rows)
 
-with open('lotto-analityk.html', 'w', encoding='utf-8') as f:
+with open('index.html', 'w', encoding='utf-8') as f:
     f.write(result)
-print(f"Gotowe! lotto-analityk.html ({len(result)} bajtow)")
+print(f"Gotowe! index.html ({len(result)} bajtow)")
