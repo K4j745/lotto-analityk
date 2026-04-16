@@ -2,7 +2,7 @@
 
 Interaktywna aplikacja analityczna dla polskiego Lotto (6/49).
 
-**Live demo:** https://K4j745.github.io/lotto-analityk/lotto-analityk.html
+**Live demo:** https://K4j745.github.io/lotto-analityk/lotto-analityk.html](https://k4j745.github.io/lotto-analityk/
 
 ## Uruchomienie lokalne
 ```bash
