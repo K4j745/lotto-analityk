@@ -26,7 +26,13 @@ from sklearn.model_selection import cross_val_score
 warnings.filterwarnings("ignore")
 
 # ── Konfiguracja ──────────────────────────────────────────────────────────────
-URL = "http://www.mbnet.com.pl/dl.txt"
+# Lista źródeł danych (próbowane po kolei aż któreś zadziała). Pierwsze sprawne
+# z >= MIN_DRAWS poprawnych losowań wygrywa. mbnet.com.pl padło (domena wygasła),
+# więc głównym źródłem jest teraz wynikilotto.net.pl (format CSV pełnej historii).
+DATA_SOURCES = [
+    "https://www.wynikilotto.net.pl/download/lotto.csv",
+    "http://www.mbnet.com.pl/dl.txt",  # zapasowo, gdyby domena wróciła
+]
 TEMPLATE_FILE = "template.html"
 OUTPUT_FILE = "index.html"
 MIN_DRAWS = 100
@@ -47,43 +53,69 @@ def log(msg: str) -> None:
     print(f"[LottoAnalityk] {msg}", flush=True)
 
 
-# ── 1. POBIERANIE DANYCH ─────────────────────────────────────────────────────
-log("Pobieranie danych z mbnet.com.pl ...")
+# ── 1. POBIERANIE + PARSOWANIE DANYCH ────────────────────────────────────────
+def parse_draws(raw_text: str) -> list[dict]:
+    """Parsuje surowe dane losowań. Obsługuje dwa formaty w jednej linii:
+    - CSV:   "ID,DD.MM.YYYY,N1,N2,N3,N4,N5,N6"  (wynikilotto.net.pl)
+    - spacje: "ID. DD.MM.YYYY N1,N2,N3,N4,N5,N6" (dawne mbnet.com.pl)
+    """
+    parsed: list[dict] = []
+    for line in raw_text.strip().splitlines():
+        line = line.strip()
+        if not line:
+            continue
 
-try:
-    resp = requests.get(URL, timeout=45, headers=HEADERS)
-    resp.raise_for_status()
-    raw_text = resp.text
-except Exception as exc:
-    log(f"BŁĄD pobierania danych: {exc}")
-    sys.exit(1)
+        comma_parts = line.split(",")
+        if len(comma_parts) == 8:
+            # Format CSV: id, data, 6 liczb
+            id_tok, date_str = comma_parts[0], comma_parts[1]
+            num_toks = comma_parts[2:8]
+        else:
+            # Format ze spacjami: "ID. DD.MM.YYYY N1,N2,..."
+            sp = line.split(maxsplit=2)
+            if len(sp) < 3:
+                continue
+            id_tok, date_str = sp[0].rstrip("."), sp[1]
+            num_toks = sp[2].split(",")
 
-log(f"Pobrano {len(raw_text)} bajtów.")
+        try:
+            draw_id = int(id_tok)
+            nums = sorted(int(x) for x in num_toks)
+        except (ValueError, IndexError):
+            continue
 
-# ── 2. PARSOWANIE ─────────────────────────────────────────────────────────────
-draws: list[dict] = []
-
-for line in raw_text.strip().splitlines():
-    line = line.strip()
-    if not line:
-        continue
-    # Format: "ID. DD.MM.YYYY N1,N2,N3,N4,N5,N6"
-    parts = line.split(maxsplit=2)
-    if len(parts) < 3:
-        continue
-    try:
-        draw_id = int(parts[0].rstrip("."))
-        date_str = parts[1]
-        nums = sorted(int(x) for x in parts[2].split(","))
         if len(nums) != 6 or not all(1 <= n <= 49 for n in nums):
             continue
-        draws.append({"id": draw_id, "date": date_str, "numbers": nums})
-    except (ValueError, IndexError):
-        continue
+        parsed.append({"id": draw_id, "date": date_str.strip(), "numbers": nums})
+    return parsed
 
-if len(draws) < MIN_DRAWS:
-    log(f"BŁĄD: Za mało losowań ({len(draws)}), wymagane min. {MIN_DRAWS}.")
+
+def fetch_draws() -> list[dict]:
+    """Próbuje kolejnych źródeł; zwraca losowania z pierwszego sprawnego."""
+    last_error = "brak źródeł"
+    for url in DATA_SOURCES:
+        log(f"Pobieranie danych z {url} ...")
+        try:
+            resp = requests.get(url, timeout=45, headers=HEADERS)
+            resp.raise_for_status()
+        except Exception as exc:
+            last_error = f"{type(exc).__name__}: {exc}"
+            log(f"  Niepowodzenie: {last_error}")
+            continue
+
+        log(f"  Pobrano {len(resp.text)} bajtów.")
+        parsed = parse_draws(resp.text)
+        if len(parsed) >= MIN_DRAWS:
+            log(f"  OK: {len(parsed)} losowań z {url}.")
+            return parsed
+        last_error = f"tylko {len(parsed)} poprawnych losowań (min. {MIN_DRAWS})"
+        log(f"  Odrzucono: {last_error}.")
+
+    log(f"BŁĄD pobierania danych ze wszystkich źródeł. Ostatni: {last_error}")
     sys.exit(1)
+
+
+draws: list[dict] = fetch_draws()
 
 # Sortuj chronologicznie po ID (rosnąco)
 draws.sort(key=lambda d: d["id"])
